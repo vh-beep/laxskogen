@@ -463,7 +463,7 @@ function viewToday(){
     goal='<div class="goal"><b>Mitt mål: '+esc(R.text)+'</b><br>'+(rest?'Du behöver ★ '+rest+' till.':'Du har nått målet! Dags att hämta belöningen.')+'</div>';
   }
   const needPerm=S.remind.on&&'Notification' in window&&Notification.permission!=='granted';
-  return (cloud.on&&cloud.status==='error'?'<div class="banner">Den delade listan svarar inte just nu. Det du gör sparas och skickas när det fungerar igen.</div>':'')+(needPerm?'<div class="banner">Påminnelsen fungerar först när du tillåter notiser. Öppna inställningar (kugghjulet) och tryck på Tillåt notiser.</div>':'')
+  return (cloud.on&&cloud.status==='error'?'<div class="banner">Den delade listan svarar inte just nu. Felkod: '+esc(cloud.err||'okänd')+'. Det du gör sparas här och skickas när det fungerar igen.</div>':'')+(needPerm?'<div class="banner">Påminnelsen fungerar först när du tillåter notiser. Öppna inställningar (kugghjulet) och tryck på Tillåt notiser.</div>':'')
   +'<section class="hero">'+trees()
   +'<div class="hero-text"><h1>Hej '+esc(S.name)+'!</h1><p>'+esc(msg)+'</p>'
   +(now.length?'<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'"><i style="width:'+pct+'%"></i></div><div class="prog-l">'+doneN+' av '+now.length+' klara idag</div>':'')
@@ -616,7 +616,7 @@ function note(msg){
 // Klistra in värdena från Firebase här. Lämnas de tomma sparas allt bara på den egna enheten.
 const FIREBASE_CONFIG={apiKey:'AIzaSyCQ3hqop2f4XE3IXNC8OJPIPhEiWtlOtBI',authDomain:'laxskogen.firebaseapp.com',projectId:'laxskogen',storageBucket:'laxskogen.firebasestorage.app',messagingSenderId:'910016278016',appId:'1:910016278016:web:24f4467578328debb6f2e5'};
 const FB='https://www.gstatic.com/firebasejs/10.14.1/';
-const cloud={on:false,code:store.get('laxskogen-code')||'',status:'',unsub:[],db:null,sdk:null,put(){},del(){},putSettings(){}};
+const cloud={on:false,err:'',code:store.get('laxskogen-code')||'',status:'',unsub:[],db:null,sdk:null,put(){},del(){},putSettings(){}};
 const cloudReady=()=>!!(FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.projectId);
 const plain=t=>JSON.parse(JSON.stringify(t));
 const sync=t=>{if(cloud.on)cloud.put(t)};
@@ -649,13 +649,13 @@ async function cloudConnect(code){
   const db=cloud.db;
   cloud.sdk=fsM;cloud.code=code;cloud.on=true;cloud.status='';
   store.set('laxskogen-code',code);
-  const fail=()=>{cloud.status='error';softRender()};
+  const fail=e=>{cloud.status='error';cloud.err=(e&&(e.code||e.message))||'okänt fel';softRender()};
   cloud.put=t=>fsM.setDoc(fsM.doc(db,'families',code,'tasks',t.id),plain(t)).catch(fail);
   cloud.del=id=>fsM.deleteDoc(fsM.doc(db,'families',code,'tasks',id)).catch(fail);
   cloud.putSettings=()=>fsM.setDoc(fsM.doc(db,'families',code,'meta','settings'),{name:S.name,reward:{text:S.reward.text||'',stars:+S.reward.stars||50}}).catch(fail);
   cloud.unsub.push(fsM.onSnapshot(fsM.collection(db,'families',code,'tasks'),snap=>{
     if(snap.metadata&&snap.metadata.fromCache&&snap.empty)return;
-    S.tasks=snap.docs.map(d=>d.data());cloud.status='ok';save();softRender();
+    S.tasks=snap.docs.map(d=>d.data());cloud.status='ok';cloud.err='';save();softRender();
   },fail));
   cloud.unsub.push(fsM.onSnapshot(fsM.doc(db,'families',code,'meta','settings'),snap=>{
     if(!snap.exists())return;
@@ -685,7 +685,7 @@ async function initCloud(){
 }
 function cloudBlock(){
   if(!cloudReady())return '<section class="block"><h3>Delad lista</h3><p class="hint">Delning mellan telefoner är inte påslagen i den här versionen. Läxorna sparas bara på den här enheten.</p></section>';
-  if(cloud.on)return '<section class="block"><h3>Delad lista</h3><p class="hint">Du delar listan med alla som har länken. Det som läggs in, ändras eller kryssas syns hos alla. Skicka länken bara till dem som ska se läxorna.'+(cloud.status==='error'?' <b>Just nu går det inte att nå den delade listan.</b>':'')+'</p>'
+  if(cloud.on)return '<section class="block"><h3>Delad lista</h3><p class="hint">Du delar listan med alla som har länken. Det som läggs in, ändras eller kryssas syns hos alla. Skicka länken bara till dem som ska se läxorna.'+(cloud.status==='error'?' <b>Just nu går det inte att nå den delade listan.</b> Felkod: '+esc(cloud.err||'okänd')+'.':'')+'</p>'
     +'<label class="fld"><span>Inbjudningslänk</span><input type="text" id="cloud-link" readonly value="'+esc(inviteLink())+'"></label>'
     +'<div class="acts"><button class="btn" data-act="copylink">Kopiera länken</button><button class="btn ghost" data-act="cloud-off">Koppla från</button></div></section>';
   return '<section class="block"><h3>Delad lista</h3><p class="hint">Dela listan så att alla ser samma läxor och samma ikryssade uppgifter.</p>'
