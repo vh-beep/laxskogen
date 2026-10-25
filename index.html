@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Läxskogen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Gabarito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --spruce:#1F4D3A; --spruce-deep:#173B2C; --moss:#6FA35B; --mist:#DDEBE5; --paper:#F7FBF8;
+  --bark:#5A3E2B; --lingon:#D63B5B; --blabar:#3F4C9A; --kantarell:#F2B22E; --ink:#1B2B25; --muted:#5B6E65;
+  --line:#C5D8CF;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--mist);color:var(--ink);font:16px/1.5 'Figtree',system-ui,sans-serif}
+h1,h2,h3,h4,.brand{font-family:'Gabarito',ui-rounded,system-ui,sans-serif;margin:0;line-height:1.15}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.skip{position:absolute;left:-999px}
+.skip:focus{left:8px;top:8px;background:#fff;padding:8px 12px;z-index:100}
+:focus-visible{outline:3px solid var(--blabar);outline-offset:2px}
+
+/* Header */
+.top{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:2px solid var(--line)}
+.bar,.tabs,main{max-width:1080px;margin:0 auto;padding-left:16px;padding-right:16px}
+.bar{display:flex;align-items:center;justify-content:space-between;padding-top:10px;padding-bottom:6px}
+.brand{font-size:22px;font-weight:800;color:var(--spruce);display:flex;align-items:center;gap:8px}
+.brand svg{width:26px;height:26px}
+.right{display:flex;align-items:center;gap:8px}
+.stars{display:inline-flex;align-items:center;gap:6px;background:var(--spruce);color:#fff;font-family:'Gabarito',sans-serif;font-weight:700;padding:6px 14px;border-radius:99px;font-size:17px}
+.stars b{color:var(--kantarell);font-size:19px}
+.gear{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);background:#fff;display:grid;place-items:center}
+.gear svg{width:22px;height:22px;fill:none;stroke:var(--spruce);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.gear[aria-current="page"]{background:var(--spruce)}
+.gear[aria-current="page"] svg{stroke:#fff}
+.tabs{display:flex;gap:6px;padding-bottom:10px}
+.tab{flex:1;min-height:44px;border:2px solid var(--line);background:#fff;border-radius:14px;font-weight:700;font-size:15px;color:var(--spruce)}
+.tab[aria-current="page"]{background:var(--spruce);border-color:var(--spruce);color:#fff}
+
+main{padding-top:18px;padding-bottom:90px}
+h2.h{font-size:28px;color:var(--spruce);margin-bottom:12px}
+h2.sec{font-size:21px;color:var(--spruce);margin:26px 0 10px;display:flex;align-items:baseline;gap:10px}
+h2.sec small{font:600 15px 'Figtree';color:var(--muted)}
+.hint{color:var(--muted);margin:4px 0 12px;max-width:62ch}
+.hint.warn{color:#9A2740;font-weight:600}
+.empty{color:var(--muted);padding:10px 0}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;background:var(--spruce);color:#EAF4EE;border-radius:28px;padding:22px 20px 0;display:grid;grid-template-columns:1fr auto;align-items:end;gap:8px;min-height:210px}
+.hero .trees{position:absolute;inset:auto 0 0 0;width:100%;height:70%;pointer-events:none}
+.hero-text{position:relative;padding-bottom:22px;align-self:center}
+.hero h1{font-size:clamp(28px,6vw,40px);font-weight:800;color:#fff}
+.hero p{margin:6px 0 14px;font-size:18px;max-width:30ch}
+.prog{height:12px;border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden;max-width:260px}
+.prog i{display:block;height:100%;background:var(--kantarell);border-radius:99px;transition:width .4s}
+.prog-l{font-size:14px;margin-top:6px;opacity:.9}
+.hero-animal{position:relative;display:flex;flex-direction:column;align-items:center}
+.log{width:150px;height:22px;background:var(--bark);border-radius:12px;margin-top:-10px;position:relative;box-shadow:inset 0 -5px 0 rgba(0,0,0,.18)}
+.log::after{content:"";position:absolute;right:-1px;top:3px;width:16px;height:16px;border-radius:50%;background:#B58A62;border:2px solid #8A6444}
+.hero-animal .animal{position:relative;z-index:1}
+
+/* Tasks */
+.task{display:flex;align-items:stretch;background:var(--paper);border-radius:16px;margin-bottom:8px;border-left:8px solid var(--c,var(--moss));overflow:hidden}
+.task .main{flex:1;display:flex;align-items:center;gap:14px;padding:12px 8px 12px 12px;cursor:pointer;min-width:0;position:relative}
+.task input{position:absolute;opacity:0;width:44px;height:44px;left:8px;margin:0;cursor:pointer}
+.box{flex:none;width:38px;height:38px;border-radius:50%;border:3px solid var(--c);background:#fff;display:grid;place-items:center;transition:background .2s,transform .2s}
+.box svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24;transition:stroke-dashoffset .25s .05s}
+.task input:checked+.box{background:var(--c);transform:scale(1.08)}
+.task input:checked+.box svg{stroke-dashoffset:0}
+.task input:focus-visible+.box{outline:3px solid var(--blabar);outline-offset:3px}
+.txt{display:flex;flex-direction:column;min-width:0}
+.subj{font-family:'Gabarito',sans-serif;font-size:15px;color:var(--c);font-weight:700}
+.ttl{overflow-wrap:anywhere}
+.when{font-size:14px;color:var(--muted)}
+.task.done .ttl{text-decoration:line-through;color:var(--muted)}
+.task.done .subj{opacity:.6}
+.del{flex:none;width:44px;border:0;background:transparent;color:var(--muted);font-size:24px}
+.del:hover{color:var(--lingon)}
+
+/* Collection */
+.friends{display:flex;flex-wrap:wrap;gap:10px}
+.friend{width:92px;text-align:center;font-size:13px;line-height:1.2}
+.friend.locked .animal{filter:brightness(0);opacity:.18}
+.friend span{display:block;color:var(--muted)}
+.friend b{font-family:'Gabarito',sans-serif;color:var(--spruce)}
+.goal{margin-top:16px;padding:12px 14px;border-left:8px solid var(--kantarell);background:var(--paper);border-radius:16px}
+.banner{background:#FFF3D1;border-left:8px solid var(--kantarell);padding:10px 14px;border-radius:14px;margin-bottom:14px}
+
+/* Week */
+.nav{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.nav h2{flex:1;font-size:22px;color:var(--spruce);min-width:150px}
+.nbtn{min-width:44px;min-height:44px;border-radius:12px;border:2px solid var(--line);background:#fff;font-weight:700;color:var(--spruce);padding:0 12px}
+.viewhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.week{display:grid;gap:14px;grid-template-columns:1fr}
+.day h3{font-size:17px;color:var(--spruce);padding:6px 10px;border-radius:10px;margin-bottom:8px}
+.day.is-today h3{background:var(--spruce);color:#fff}
+.day .task{margin-bottom:6px}
+.day .task .main{padding:10px 6px 10px 10px;gap:10px}
+.day .box{width:30px;height:30px}
+.day .task input{width:36px;height:36px}
+.day .box svg{width:20px;height:20px}
+.none{color:var(--muted);font-size:14px;padding:2px 10px}
+@media (min-width:760px){.week{grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}.day .ttl{font-size:14px}.day .del{width:28px;font-size:20px}.day .edit svg{width:16px;height:16px}.day .when{display:none}}
+
+/* Month */
+.mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.mh{text-align:center;font:700 14px 'Gabarito';color:var(--muted);padding:4px 0}
+.cell{min-height:58px;border:2px solid transparent;border-radius:12px;background:var(--paper);padding:4px 2px;display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:600}
+.cell.blank{background:transparent;pointer-events:none}
+.cell.today{border-color:var(--spruce)}
+.cell[aria-pressed="true"]{background:var(--spruce);color:#fff}
+.dots{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
+.dots i{width:9px;height:9px;border-radius:50%;border:2px solid var(--lingon);background:transparent}
+.dots i.d{background:var(--moss);border-color:var(--moss)}
+.cell[aria-pressed="true"] .dots i{border-color:#fff}
+.cell[aria-pressed="true"] .dots i.d{background:var(--kantarell);border-color:var(--kantarell)}
+.dots em{font-size:11px;font-style:normal}
+
+/* Forms */
+.block{background:var(--paper);border-radius:20px;padding:16px;margin-bottom:16px}
+.block h3{font-size:20px;color:var(--spruce);margin-bottom:6px}
+.fld{display:block;margin-bottom:12px}
+.fld>span{display:block;font-weight:600;margin-bottom:4px}
+input[type=text],input[type=date],input[type=time],input[type=number],textarea{width:100%;min-height:44px;border:2px solid var(--line);border-radius:12px;padding:8px 12px;background:#fff}
+textarea{resize:vertical}
+.btn{min-height:48px;padding:0 22px;border-radius:14px;border:0;background:var(--spruce);color:#fff;font:700 17px 'Gabarito',sans-serif}
+.btn.alt{background:var(--lingon)}
+.btn.ghost{background:#fff;color:var(--lingon);border:2px solid var(--lingon)}
+.preview{margin-top:16px;border-top:2px dashed var(--line);padding-top:14px}
+.preview h4{font-size:18px;margin-bottom:10px;color:var(--spruce)}
+.prow{display:grid;grid-template-columns:1fr 44px;gap:6px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.prow>*{grid-column:1}
+.prow>.del{grid-column:2;grid-row:1/5}
+.days{display:flex;align-items:center;gap:8px;font-weight:600}
+.days input{width:84px}
+.chk{display:flex;align-items:center;gap:10px;font-weight:600;margin:4px 0 14px;min-height:44px}
+.chk input{width:24px;height:24px;flex:none;accent-color:var(--spruce)}
+.row2{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.row2 label{display:flex;align-items:center;gap:8px;font-weight:600}
+.row2 input[type=checkbox]{width:24px;height:24px;accent-color:var(--spruce)}
+.row2 input[type=time]{width:auto}
+
+/* Animals */
+.animal{display:block;overflow:visible}
+.arm{transform-box:fill-box;transform-origin:50% 0}
+.al{transform:rotate(14deg)}
+.ar{transform:rotate(-14deg)}
+.wv{transform:rotate(-125deg);animation:wave .7s ease-in-out infinite alternate}
+.chl{transform:rotate(130deg);animation:chl .35s ease-in-out infinite alternate}
+.chr{transform:rotate(-130deg);animation:chr .35s ease-in-out infinite alternate}
+.jump{animation:jump .45s ease-in-out infinite alternate}
+@keyframes wave{from{transform:rotate(-112deg)}to{transform:rotate(-158deg)}}
+@keyframes chl{from{transform:rotate(122deg)}to{transform:rotate(162deg)}}
+@keyframes chr{from{transform:rotate(-122deg)}to{transform:rotate(-162deg)}}
+@keyframes jump{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+
+/* Toast */
+#toast{position:fixed;left:0;right:0;bottom:14px;display:flex;justify-content:center;pointer-events:none;z-index:70}
+.pop{position:relative;display:flex;align-items:center;gap:10px;background:#fff;border:3px solid var(--spruce);border-radius:26px;padding:10px 20px 10px 12px;box-shadow:0 8px 0 rgba(31,77,58,.25);animation:rise .3s ease-out;max-width:92vw}
+.pop.note{padding:12px 20px}
+.pop p{margin:0;font:700 19px 'Gabarito',sans-serif;color:var(--spruce)}
+.spark{position:absolute;left:54px;top:46px;width:16px;height:16px;background:var(--kantarell);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);animation:spark .9s ease-out var(--d) forwards;opacity:0}
+@keyframes spark{0%{opacity:1;transform:translate(0,0) scale(.4)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.4) rotate(90deg)}}
+@keyframes rise{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+
+.modal-wrap{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px}
+.scrim{position:absolute;inset:0;background:rgba(23,59,44,.55)}
+.modal{position:relative;background:var(--paper);border-radius:22px;padding:20px;width:100%;max-width:440px;max-height:90vh;overflow:auto;animation:rise .2s ease-out}
+.modal h3{font-size:22px;color:var(--spruce);margin-bottom:12px}
+.modal .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.edit svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
+.edit:hover{color:var(--blabar)}
+.ask{font-size:19px;margin:0 0 14px;overflow-wrap:anywhere}.ask b{color:var(--spruce)}
+.modal .wave{display:flex;justify-content:center;margin-bottom:6px}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#view">Hoppa till innehållet</a>
+<header class="top">
+  <div class="bar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2L6 15h5L4 25h24l-7-10h5z" fill="#6FA35B"/><rect x="14" y="25" width="4" height="5" fill="#5A3E2B"/></svg>
+      Läxskogen
+    </div>
+    <div class="right">
+      <span class="stars" id="stars" aria-live="polite"></span>
+      <button class="gear" data-act="tab" data-v="settings" id="gear" aria-label="Inställningar">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Vyer">
+    <button class="tab" data-act="tab" data-v="today">Idag</button>
+    <button class="tab" data-act="tab" data-v="week">Vecka</button>
+    <button class="tab" data-act="tab" data-v="month">Månad</button>
+    <button class="tab" data-act="tab" data-v="add">Lägg till</button>
+  </nav>
+</header>
+<main id="view"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(()=>{
+'use strict';
+
+/* ---------- Lagring (sparas i webbläsaren, faller tillbaka till minnet om det inte går) ---------- */
+const store=(()=>{
+  const mem={};let ok=false;
+  try{localStorage.setItem('_t','1');localStorage.removeItem('_t');ok=true}catch(e){}
+  return{
+    get(k){try{const v=ok?localStorage.getItem(k):mem[k];return v?JSON.parse(v):null}catch(e){return null}},
+    set(k,v){const s=JSON.stringify(v);try{if(ok)localStorage.setItem(k,s);else mem[k]=s}catch(e){mem[k]=s}}
+  };
+})();
+
+/* ---------- Hjälpfunktioner ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const fromYmd=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const wd=d=>(d.getDay()+6)%7;
+const startOfWeek=d=>addDays(d,-wd(d));
+const today=()=>ymd(new Date());
+const isoWeek=d=>{const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y0)/864e5+1)/7)};
+const DAYS=['måndag','tisdag','onsdag','torsdag','fredag','lördag','söndag'];
+const DS=['mån','tis','ons','tors','fre','lör','sön'];
+const MONTHS=['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+const MON=['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
+const short=d=>d.getDate()+' '+MON[d.getMonth()];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const hash=s=>[...String(s).toLowerCase()].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
+const COLORS=['#D63B5B','#3F4C9A','#2E8B6A','#D9801A','#8A4FA8','#1E86AD'];
+const colorFor=s=>COLORS[hash(s)%COLORS.length];
+function dayLabel(s){
+  const t=today();
+  if(s===t)return 'idag';
+  if(s===ymd(addDays(new Date(),1)))return 'imorgon';
+  if(s===ymd(addDays(new Date(),-1)))return 'igår';
+  const d=fromYmd(s);return DS[wd(d)]+' '+short(d);
+}
+
+/* ---------- Djuren ---------- */
+const ANIMALS=[
+  {k:'rav',n:'Räven',at:0},{k:'kanin',n:'Kaninen',at:10},{k:'igelkott',n:'Igelkotten',at:25},
+  {k:'uggla',n:'Ugglan',at:45},{k:'ekorre',n:'Ekorren',at:70},{k:'bjorn',n:'Björnen',at:100}
+];
+const D='#2A2220';
+function animal(kind,pose,size){
+  pose=pose||'still';size=size||100;
+  const P={rav:['#E9893B','#FFF0DA','#3B2A22'],bjorn:['#A9714A','#EACFA8','#3B2A22'],uggla:['#8F7C67','#E9DDC9','#3B2A22'],
+    kanin:['#EDE6DE','#FFFFFF','#E88FA0'],igelkott:['#E6C497','#F8E6C8','#3B2A22'],ekorre:['#C6783C','#FBE6CC','#3B2A22']}[kind];
+  const c=P[0],b=P[1],k=P[2];
+  let back='',ears='',face='',extra='';
+  if(kind==='rav'){
+    back='<g transform="rotate(-30 96 108)"><ellipse cx="98" cy="108" rx="24" ry="11" fill="'+c+'"/><ellipse cx="116" cy="108" rx="8" ry="8" fill="#fff"/></g>';
+    ears='<path d="M36 46L31 14L55 33Z" fill="'+c+'"/><path d="M84 46L89 14L65 33Z" fill="'+c+'"/><path d="M38 38L36 22L48 32Z" fill="'+k+'"/><path d="M82 38L84 22L72 32Z" fill="'+k+'"/>';
+    face='<ellipse cx="60" cy="67" rx="19" ry="12" fill="'+b+'"/><ellipse cx="60" cy="60" rx="4.5" ry="3.2" fill="'+k+'"/>';
+  }else if(kind==='bjorn'){
+    ears='<circle cx="38" cy="34" r="10" fill="'+c+'"/><circle cx="82" cy="34" r="10" fill="'+c+'"/><circle cx="38" cy="34" r="5" fill="'+b+'"/><circle cx="82" cy="34" r="5" fill="'+b+'"/>';
+    face='<ellipse cx="60" cy="66" rx="13" ry="10" fill="'+b+'"/><ellipse cx="60" cy="61" rx="4.8" ry="3.4" fill="'+k+'"/>';
+  }else if(kind==='uggla'){
+    ears='<path d="M34 42L30 16L54 32Z" fill="'+c+'"/><path d="M86 42L90 16L66 32Z" fill="'+c+'"/>';
+    face='<circle cx="47" cy="53" r="12.5" fill="#fff"/><circle cx="73" cy="53" r="12.5" fill="#fff"/><path d="M55 60L65 60L60 70Z" fill="#F2A12E"/>';
+    extra='<path d="M50 96q4 4 8 0M62 96q4 4 8 0M50 106q4 4 8 0M62 106q4 4 8 0" stroke="'+c+'" stroke-width="2" fill="none" stroke-linecap="round"/>';
+  }else if(kind==='kanin'){
+    ears='<g transform="rotate(-8 46 24)"><ellipse cx="46" cy="24" rx="8" ry="22" fill="'+c+'"/><ellipse cx="46" cy="26" rx="4" ry="15" fill="'+k+'"/></g><g transform="rotate(8 74 24)"><ellipse cx="74" cy="24" rx="8" ry="22" fill="'+c+'"/><ellipse cx="74" cy="26" rx="4" ry="15" fill="'+k+'"/></g>';
+    face='<ellipse cx="60" cy="66" rx="11" ry="8" fill="'+b+'"/><ellipse cx="60" cy="60" rx="3.6" ry="2.6" fill="'+k+'"/>';
+  }else if(kind==='igelkott'){
+    const pts=[];
+    for(let a=195;a<=345;a+=7.5){const r=((a-195)/7.5)%2===0?52:42;const rad=a*Math.PI/180;pts.push((60+r*Math.cos(rad)).toFixed(1)+' '+(80+r*Math.sin(rad)).toFixed(1));}
+    back='<path d="M'+pts.join('L')+'L98 100L22 100Z" fill="#6B4A36"/>';
+    ears='<circle cx="40" cy="36" r="7" fill="'+c+'"/><circle cx="80" cy="36" r="7" fill="'+c+'"/>';
+    face='<ellipse cx="60" cy="66" rx="14" ry="10" fill="'+b+'"/><circle cx="60" cy="61" r="3.6" fill="'+D+'"/>';
+  }else{
+    back='<g transform="rotate(18 100 92)"><ellipse cx="100" cy="86" rx="15" ry="32" fill="'+c+'"/><ellipse cx="104" cy="82" rx="7" ry="22" fill="'+b+'" opacity=".6"/></g>';
+    ears='<circle cx="40" cy="34" r="8" fill="'+c+'"/><circle cx="80" cy="34" r="8" fill="'+c+'"/><circle cx="40" cy="34" r="4" fill="'+b+'"/><circle cx="80" cy="34" r="4" fill="'+b+'"/>';
+    face='<ellipse cx="60" cy="66" rx="12" ry="9" fill="'+b+'"/><ellipse cx="60" cy="61" rx="3.8" ry="2.8" fill="'+D+'"/>';
+  }
+  const owl=kind==='uggla',cheer=pose==='cheer';
+  const ex=owl?[47,73]:[49,71],ey=owl?53:52,er=owl?4.6:3.4;
+  let eyes='';
+  ex.forEach(x=>{
+    eyes+=cheer
+      ?'<path d="M'+(x-4.5)+' '+(ey+1.5)+'Q'+x+' '+(ey-5)+' '+(x+4.5)+' '+(ey+1.5)+'" stroke="'+D+'" stroke-width="2.6" fill="none" stroke-linecap="round"/>'
+      :'<circle cx="'+x+'" cy="'+ey+'" r="'+er+'" fill="'+D+'"/><circle cx="'+(x+1.2)+'" cy="'+(ey-1.3)+'" r="1.2" fill="#fff"/>';
+  });
+  let mouth='';
+  if(!owl)mouth=cheer?'<path d="M53 68Q60 80 67 68Z" fill="#B3394F"/>':'<path d="M55 69Q60 74 65 69" stroke="'+D+'" stroke-width="2" fill="none" stroke-linecap="round"/>';
+  const L=pose==='cheer'?'chl':'al',R=pose==='cheer'?'chr':(pose==='wave'?'wv':'ar');
+  const arm=(x,cls)=>'<g transform="translate('+x+' 86)"><ellipse class="arm '+cls+'" cx="0" cy="13" rx="7" ry="14" fill="'+c+'"/></g>';
+  return '<svg class="animal '+(cheer?'jump':'')+'" viewBox="0 0 120 130" width="'+size+'" height="'+Math.round(size*130/120)+'" aria-hidden="true" focusable="false">'
+    +back
+    +'<ellipse cx="46" cy="124" rx="11" ry="6" fill="'+c+'"/><ellipse cx="74" cy="124" rx="11" ry="6" fill="'+c+'"/>'
+    +'<ellipse cx="60" cy="100" rx="30" ry="28" fill="'+c+'"/><ellipse cx="60" cy="104" rx="18" ry="19" fill="'+b+'"/>'+extra
+    +arm(36,L)+arm(84,R)
+    +ears+'<circle cx="60" cy="56" r="28" fill="'+c+'"/>'+face
+    +'<ellipse cx="40" cy="64" rx="5" ry="3.2" fill="#F28BA0" opacity=".55"/><ellipse cx="80" cy="64" rx="5" ry="3.2" fill="#F28BA0" opacity=".55"/>'
+    +(owl?'':'')+eyes+mouth+'</svg>';
+}
+function trees(){
+  const list=[[4,70,'#173B2C'],[60,90,'#1B4533'],[130,64,'#173B2C'],[210,96,'#1B4533'],[290,70,'#173B2C'],[345,88,'#1B4533']];
+  return '<svg class="trees" viewBox="0 0 420 160" preserveAspectRatio="xMidYMax slice" aria-hidden="true">'+list.map(([x,s,f])=>
+    '<path fill="'+f+'" d="M'+x+' 160L'+(x+s/2)+' '+(160-s*1.2)+'L'+(x+s)+' 160Z"/><path fill="'+f+'" d="M'+(x+s*0.12)+' '+(160-s*0.5)+'L'+(x+s/2)+' '+(160-s*1.65)+'L'+(x+s*0.88)+' '+(160-s*0.5)+'Z"/>').join('')+'</svg>';
+}
+
+/* ---------- Tillstånd ---------- */
+const saved=store.get('laxskogen')||{};
+const S=Object.assign({tasks:[],name:'Isabelle'},saved);
+S.remind=Object.assign({on:false,time:'16:00',last:''},saved.remind||{});
+S.reward=Object.assign({text:'',stars:50},saved.reward||{});
+const save=()=>store.set('laxskogen',S);
+const UI={view:'today',weekStart:startOfWeek(new Date()),month:new Date(new Date().getFullYear(),new Date().getMonth(),1),sel:today(),edit:null,confirm:null,preview:null,skip:false,pasteText:'',pasteDate:today()};
+
+function stats(){
+  const t0=today(),by={};
+  S.tasks.forEach(t=>{(by[t.date]=by[t.date]||[]).push(t)});
+  const full=Object.keys(by).filter(d=>d<=t0&&by[d].every(t=>t.done)).length;
+  const done=S.tasks.filter(t=>t.done).length;
+  return{done,full,stars:done+full*3};
+}
+const unlocked=stars=>ANIMALS.filter(a=>stars>=a.at).map(a=>a.k);
+const byDate=(a,b)=>a.date.localeCompare(b.date)||(a.done-b.done)||a.subject.localeCompare(b.subject);
+
+/* ---------- Läs av text från Schoolsoft ---------- */
+const SUBJ_LONG='matematik|matte|svenska|engelska|biologi|fysik|kemi|geografi|historia|religion|samhällskunskap|bild|musik|idrott och hälsa|idrott|slöjd|hemkunskap|teknik|spanska|franska|tyska|moderna språk|elevens val';
+function inferYear(day,month,yr,base){
+  const y=yr?(+yr<100?2000+ +yr:+yr):base.getFullYear();
+  const d=new Date(y,month-1,day);
+  if(!yr&&d<addDays(base,-180))d.setFullYear(y+1);
+  return d;
+}
+function weekDate(n,idx,base){
+  const mk=y=>{const j=new Date(y,0,4);return addDays(j,-wd(j)+(n-1)*7+idx)};
+  let d=mk(base.getFullYear());
+  if(d<addDays(base,-200))d=mk(base.getFullYear()+1);
+  return d;
+}
+const WDN='(?:mån|tis|ons|tors|fre|lör|sön)(?:dag(?:en)?)?';
+const WDRE='(mån|tis|ons|tors|fre|lör|sön)(?:dag(?:en)?)?';
+function findDate(line,base,ctx){
+  const pre='(?:\\b(?:till|senast|inför)\\s+)?';
+  const preD=pre+'(?:\\b'+WDN+'\\s+)?';
+  let m=line.match(new RegExp(preD+'\\b(\\d{4})-(\\d{1,2})-(\\d{1,2})\\b','i'));
+  if(m)return{d:new Date(+m[1],+m[2]-1,+m[3]),rest:line.replace(m[0],' ')};
+  m=line.match(new RegExp(preD+'\\b(\\d{1,2})\\s*/\\s*(\\d{1,2})(?:\\s*/\\s*(\\d{2,4}))?\\b','i'));
+  if(m&&+m[1]>=1&&+m[1]<=31&&+m[2]>=1&&+m[2]<=12)return{d:inferYear(+m[1],+m[2],m[3],base),rest:line.replace(m[0],' ')};
+  m=line.match(new RegExp(preD+'\\b(\\d{1,2})\\s*(?::e\\s*)?('+MON.join('|')+')[a-zåäö]*\\b','i'));
+  if(m&&+m[1]>=1&&+m[1]<=31)return{d:inferYear(+m[1],MON.indexOf(m[2].toLowerCase())+1,null,base),rest:line.replace(m[0],' ')};
+  m=line.match(new RegExp(pre+'\\b(idag|imorgon|i morgon|övermorgon)\\b','i'));
+  if(m){const w=m[1].toLowerCase();return{d:addDays(base,w==='idag'?0:w==='övermorgon'?2:1),rest:line.replace(m[0],' ')}}
+  m=line.match(new RegExp(pre+'\\bv(?:ecka)?\\.?\\s*(\\d{1,2})\\s+'+WDRE+'\\b','i'));
+  if(m&&+m[1]>=1&&+m[1]<=53)return{d:weekDate(+m[1],DS.indexOf(m[2].toLowerCase()),base),rest:line.replace(m[0],' ')};
+  m=line.match(new RegExp(pre+'\\b'+WDRE+'\\s+v(?:ecka)?\\.?\\s*(\\d{1,2})\\b','i'));
+  if(m&&+m[2]>=1&&+m[2]<=53)return{d:weekDate(+m[2],DS.indexOf(m[1].toLowerCase()),base),rest:line.replace(m[0],' ')};
+  m=line.match(new RegExp(pre+'\\bv(?:ecka)?\\.?\\s*(\\d{1,2})\\b','i'));
+  if(m&&+m[1]>=1&&+m[1]<=53)return{d:weekDate(+m[1],4,base),rest:line.replace(m[0],' ')};
+  m=line.match(new RegExp(pre+'\\b'+WDRE+'\\b','i'));
+  if(m){const idx=DS.indexOf(m[1].toLowerCase());return{d:ctx?addDays(ctx,idx):addDays(base,(idx-wd(base)+7)%7),rest:line.replace(m[0],' ')}}
+  return null;
+}
+const HEAD=/^(skolarbete|läxor|läxa|uppgifter|prov|viktiga datum och aktiviteter framöver|viktiga datum|aktiviteter)$/i;
+const SKIP=/^(hej\b|här kommer|hälsningar|vänliga hälsningar|mvh|med vänlig)/i;
+const ABBR={sv:'Svenska',eng:'Engelska',en:'Engelska',ma:'Matte',matematik:'Matte',no:'NO',so:'SO'};
+const LEAD=new RegExp('^\\s*(?:v(?:ecka)?\\.?\\s*\\d{1,2}\\b|'+WDN+'\\b)\\s*','i');
+const clean=s=>s.replace(/\s+([.,;:])/g,'$1').replace(/\s+/g,' ').replace(/^[\s:,.\-–—]+|[\s:,.\-–—]+$/g,'');
+function parseText(text,base){
+  const out=[];let cur=null,ctx=null,section='';
+  text.split(/\r?\n/).forEach(raw=>{
+    let line=raw.replace(/^[\s•*·▪\-–—]+/,'').replace(/\s+/g,' ').trim();
+    if(!line||SKIP.test(line))return;
+    let date=cur;
+    const f=findDate(line,base,ctx);
+    if(f){
+      let rest=f.rest;
+      for(let i=0;i<3;i++)rest=rest.replace(LEAD,'');
+      line=clean(rest.replace(/\b(förhörs|lämnas in|inlämning)\s*[.,]?\s*$/i,''));
+      date=f.d;
+      if(line.replace(/[^\p{L}]/gu,'').length<3||HEAD.test(line)){
+        if(HEAD.test(line))section=/^prov$/i.test(line)?'Prov':'';
+        cur=f.d;ctx=startOfWeek(f.d);return;
+      }
+    }else{
+      line=clean(line);
+      if(HEAD.test(line)){section=/^prov$/i.test(line)?'Prov':'';return}
+    }
+    let subject='',title=line,m;
+    if((m=line.match(new RegExp('^('+SUBJ_LONG+')\\b\\.?\\s*[:–—-]?\\s*(.*)$','i')))){subject=m[1];title=m[2]||'Läxa'}
+    else if((m=line.match(/^(sv|eng|en|ma|no|so|ih|ml)(?:[.:]|\s[-–—]\s)\s*(.*)$/i))||(m=line.match(/^(NO|SO|SV|MA|ENG|ML)\b\s*(.*)$/))){subject=m[1];title=m[2]||'Läxa'}
+    else if((m=line.match(/^(.*?)\b(Sv|Eng|Ma|NO|SO)\.\s*(.*)$/))){subject=m[2];title=clean(m[1]+' '+m[3])||'Läxa'}
+    else if((m=line.match(/^([^:]{2,24}):\s*(.+)$/))&&!/\d/.test(m[1])&&m[1].trim().split(' ').length<=2){subject=m[1].trim();title=m[2]}
+    subject=ABBR[subject.toLowerCase()]||cap(subject)||'Övrigt';
+    title=cap(clean(title));
+    if(section==='Prov'&&!/\bprov\b/i.test(title))title='Prov: '+title;
+    out.push({subject,title,date:ymd(date||base)});
+  });
+  return out;
+}
+const clampDays=v=>Math.max(1,Math.min(60,parseInt(v,10)||1));
+function spread(date,n,skip){
+  const out=[date];let d=fromYmd(date);
+  while(out.length<n){d=addDays(d,1);if(skip&&wd(d)>=5)continue;out.push(ymd(d))}
+  return out;
+}
+function addTasks(list,own){
+  let added=0,skipped=0;
+  list.forEach(r=>{
+    const subject=(r.subject||'').trim()||(own?'Eget':'Övrigt'),title=(r.title||'').trim();
+    if(!title||!/^\d{4}-\d{2}-\d{2}$/.test(r.date))return;
+    const n=clampDays(r.days),series=n>1?uid():null;
+    spread(r.date,n,r.skip).forEach(date=>{
+      if(S.tasks.some(t=>t.title===title&&t.subject===subject&&t.date===date)){skipped++;return}
+      const t={id:uid(),title,subject,date,done:false,own:!!own};
+      if(series)t.series=series;
+      S.tasks.push(t);sync(t);added++;
+    });
+  });
+  save();return{added,skipped};
+}
+
+/* ---------- Vyer ---------- */
+function row(t,showDate){
+  return '<div class="task '+(t.done?'done':'')+'" style="--c:'+colorFor(t.subject)+'">'
+    +'<label class="main"><input type="checkbox" data-id="'+t.id+'" '+(t.done?'checked':'')+'>'
+    +'<span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>'
+    +'<span class="txt"><b class="subj">'+esc(t.subject)+'</b><span class="ttl">'+esc(t.title)+'</span>'+(showDate?'<span class="when">'+esc(dayLabel(t.date))+'</span>':'')+'</span></label>'
+    +'<button class="del edit" data-act="edit" data-id="'+t.id+'" aria-label="Ändra uppgiften '+esc(t.title)+'"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'
+    +'<button class="del" data-act="del" data-id="'+t.id+'" aria-label="Ta bort uppgiften '+esc(t.title)+'">×</button></div>';
+}
+const list=(arr,showDate,empty)=>arr.length?arr.map(t=>row(t,showDate)).join(''):'<p class="empty">'+esc(empty||'Inget här.')+'</p>';
+
+function waver(size){
+  const st=stats();const u=unlocked(st.stars);
+  return animal(u[Math.floor(new Date().getDate()+new Date().getMonth())%u.length],'wave',size);
+}
+
+function viewToday(){
+  const t0=today(),st=stats();
+  const late=S.tasks.filter(t=>!t.done&&t.date<t0).sort(byDate);
+  const now=S.tasks.filter(t=>t.date===t0).sort(byDate);
+  const soon=S.tasks.filter(t=>t.date>t0&&t.date<=ymd(addDays(new Date(),3))).sort(byDate);
+  const left=late.length+now.filter(t=>!t.done).length;
+  const doneN=now.filter(t=>t.done).length;
+  let msg;
+  if(!now.length&&!late.length)msg='Inga uppgifter idag. Njut av skogen!';
+  else if(!left)msg='Allt är klart för idag. Bra jobbat!';
+  else msg='Du har '+left+(left===1?' uppgift':' uppgifter')+' kvar att göra.';
+  const pct=now.length?Math.round(doneN/now.length*100):0;
+  const next=ANIMALS.find(a=>a.at>st.stars);
+  const R=S.reward;
+  let goal='';
+  if(R.text){
+    const rest=Math.max(0,(+R.stars||0)-st.stars);
+    goal='<div class="goal"><b>Mitt mål: '+esc(R.text)+'</b><br>'+(rest?'Du behöver ★ '+rest+' till.':'Du har nått målet! Dags att hämta belöningen.')+'</div>';
+  }
+  const needPerm=S.remind.on&&'Notification' in window&&Notification.permission!=='granted';
+  return (cloud.on&&cloud.status==='error'?'<div class="banner">Den delade listan svarar inte just nu. Det du gör sparas och skickas när det fungerar igen.</div>':'')+(needPerm?'<div class="banner">Påminnelsen fungerar först när du tillåter notiser. Öppna inställningar (kugghjulet) och tryck på Tillåt notiser.</div>':'')
+  +'<section class="hero">'+trees()
+  +'<div class="hero-text"><h1>Hej '+esc(S.name)+'!</h1><p>'+esc(msg)+'</p>'
+  +(now.length?'<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'"><i style="width:'+pct+'%"></i></div><div class="prog-l">'+doneN+' av '+now.length+' klara idag</div>':'')
+  +'</div><div class="hero-animal">'+waver(130)+'<div class="log"></div></div></section>'
+  +(late.length?'<h2 class="sec">Försenat <small>'+late.length+'</small></h2>'+list(late,true):'')
+  +'<h2 class="sec">Idag <small>'+DAYS[wd(new Date())]+' '+short(new Date())+'</small></h2>'+list(now,false,'Inget inlagt för idag. Lägg till under Lägg till.')
+  +(soon.length?'<h2 class="sec">Närmast</h2>'+list(soon,true):'')
+  +'<h2 class="sec">Mina skogsvänner <small>'+unlocked(st.stars).length+' av '+ANIMALS.length+'</small></h2>'
+  +'<div class="friends">'+ANIMALS.map(a=>'<div class="friend '+(st.stars>=a.at?'':'locked')+'">'+animal(a.k,'still',64)+'<b>'+(st.stars>=a.at?a.n:'Hemlig vän')+'</b>'+(st.stars>=a.at?'':'<span>vid ★ '+a.at+'</span>')+'</div>').join('')+'</div>'
+  +(next?'<p class="hint">Samla ★ '+(next.at-st.stars)+' till så kommer '+next.n.toLowerCase()+' på besök. Varje klar uppgift ger 1 stjärna, och en hel klar dag ger 3 extra.</p>':'<p class="hint">Alla vännerna har kommit. Wow!</p>')
+  +goal;
+}
+
+function viewWeek(){
+  const ws=UI.weekStart,days=[...Array(7)].map((_,i)=>addDays(ws,i)),t0=today();
+  return '<div class="viewhead"><h2 class="h">Veckoschema</h2>'+waver(70)+'</div>'
+  +'<div class="nav"><button class="nbtn" data-act="wk" data-n="-1" aria-label="Förra veckan">‹</button>'
+  +'<h2>Vecka '+isoWeek(ws)+', '+short(ws)+' – '+short(addDays(ws,6))+'</h2>'
+  +'<button class="nbtn" data-act="wk" data-n="1" aria-label="Nästa vecka">›</button><button class="nbtn" data-act="wk" data-n="0">Idag</button></div>'
+  +'<div class="week">'+days.map(d=>{
+    const k=ymd(d),ts=S.tasks.filter(t=>t.date===k).sort(byDate);
+    return '<section class="day '+(k===t0?'is-today':'')+'"><h3>'+cap(DAYS[wd(d)])+' '+d.getDate()+'</h3>'+(ts.length?ts.map(t=>row(t,false)).join(''):'<p class="none">Inget inplanerat</p>')+'</section>';
+  }).join('')+'</div>';
+}
+
+function viewMonth(){
+  const m=UI.month,first=new Date(m.getFullYear(),m.getMonth(),1),n=new Date(m.getFullYear(),m.getMonth()+1,0).getDate(),t0=today();
+  let cells='';
+  for(let i=0;i<wd(first);i++)cells+='<div class="cell blank"></div>';
+  for(let d=1;d<=n;d++){
+    const k=ymd(new Date(m.getFullYear(),m.getMonth(),d)),ts=S.tasks.filter(t=>t.date===k);
+    const dots=ts.slice(0,4).map(t=>'<i class="'+(t.done?'d':'')+'"></i>').join('')+(ts.length>4?'<em>+'+(ts.length-4)+'</em>':'');
+    const left=ts.filter(t=>!t.done).length;
+    cells+='<button class="cell '+(k===t0?'today':'')+'" data-act="pick" data-d="'+k+'" aria-pressed="'+(k===UI.sel)+'" aria-label="'+d+' '+MONTHS[m.getMonth()]+', '+(ts.length?left+' kvar av '+ts.length:'inget inplanerat')+'">'+d+'<span class="dots">'+dots+'</span></button>';
+  }
+  const sel=UI.sel,selD=fromYmd(sel),ts=S.tasks.filter(t=>t.date===sel).sort(byDate);
+  return '<div class="viewhead"><h2 class="h">Månadsvy</h2>'+waver(70)+'</div>'
+  +'<div class="nav"><button class="nbtn" data-act="mo" data-n="-1" aria-label="Förra månaden">‹</button><h2>'+cap(MONTHS[m.getMonth()])+' '+m.getFullYear()+'</h2>'
+  +'<button class="nbtn" data-act="mo" data-n="1" aria-label="Nästa månad">›</button><button class="nbtn" data-act="mo" data-n="0">Idag</button></div>'
+  +'<div class="mgrid">'+DS.map(x=>'<div class="mh">'+x+'</div>').join('')+cells+'</div>'
+  +'<h2 class="sec">'+cap(DAYS[wd(selD)])+' '+short(selD)+'</h2>'+list(ts,false,'Inget inplanerat den här dagen.');
+}
+
+function previewHTML(pv){
+  if(!pv.length)return '<p class="hint warn">Hittade inga uppgifter i texten. Kolla att du klistrat in läxorna.</p>';
+  const w=pv.length===1?'uppgift':'uppgifter';
+  return '<div class="preview"><h4>Hittade '+pv.length+' '+w+'. Rätta det som behövs.</h4>'
+  +pv.map((r,i)=>'<div class="prow"><input type="text" aria-label="Ämne" data-pi="'+i+'" data-pf="subject" value="'+esc(r.subject)+'"><input type="text" aria-label="Uppgift" data-pi="'+i+'" data-pf="title" value="'+esc(r.title)+'"><input type="date" aria-label="Datum" data-pi="'+i+'" data-pf="date" value="'+esc(r.date)+'"><label class="days">Antal dagar <input type="number" min="1" max="60" aria-label="Antal dagar" data-pi="'+i+'" data-pf="days" value="'+esc(r.days||1)+'"></label><button class="del" data-act="prow-del" data-i="'+i+'" aria-label="Ta bort raden">×</button></div>').join('')
+  +'<label class="chk"><input type="checkbox" data-ui="skip" '+(UI.skip?'checked':'')+'> Hoppa över lördag och söndag när en uppgift upprepas</label><button class="btn" data-act="prev-add">Lägg till '+pv.length+' '+w+'</button></div>';
+}
+function viewAdd(){
+  return '<h2 class="h">Lägg till uppgifter</h2>'
+  +'<section class="block"><h3>Från Schoolsoft</h3>'
+  +'<p class="hint">Kopiera läxorna i Schoolsoft och klistra in dem här. Appen letar efter ämne och datum, till exempel ”Matte: sid 45 till fredag”, en rubrik som ”Måndag 26 oktober” eller veckobrev med ”v.43”, ”Sv.” och ”Ma.”.</p>'
+  +'<label class="fld"><span>Text från Schoolsoft</span><textarea rows="6" data-ui="pasteText">'+esc(UI.pasteText)+'</textarea></label>'
+  +'<label class="fld"><span>Rader utan datum får</span><input type="date" data-ui="pasteDate" value="'+esc(UI.pasteDate)+'"></label>'
+  +'<button class="btn" data-act="parse">Läs av texten</button>'
+  +(UI.preview?previewHTML(UI.preview):'')+'</section>'
+  +'<section class="block"><h3>Egen uppgift</h3><p class="hint">Till exempel träning, prov eller något du vill hinna med.</p>'
+  +'<label class="fld"><span>Vad ska göras?</span><input type="text" id="own-title" autocomplete="off"></label>'
+  +'<label class="fld"><span>Ämne eller kategori</span><input type="text" id="own-subj" placeholder="Eget" autocomplete="off"></label>'
+  +'<label class="fld"><span>Datum</span><input type="date" id="own-date" value="'+today()+'"></label>'
+  +'<label class="fld"><span>Antal dagar i rad</span><input type="number" id="own-days" min="1" max="60" value="1"></label>'
+  +'<p class="hint">1 betyder bara den här dagen. Med 7 läggs uppgiften in en gång per dag i sju dagar, och varje dag kryssas för sig.</p>'
+  +'<label class="chk"><input type="checkbox" id="own-skip"> Hoppa över lördag och söndag</label>'
+  +'<button class="btn alt" data-act="own">Lägg till uppgiften</button></section>';
+}
+function viewSettings(){
+  const perm='Notification' in window?Notification.permission:'unsupported';
+  const R=S.remind,W=S.reward;
+  return '<h2 class="h">Inställningar</h2>'+cloudBlock()
+  +'<section class="block"><h3>Namn</h3><label class="fld"><span>Vem är det som läser läxorna?</span><input type="text" data-set="name" value="'+esc(S.name)+'"></label></section>'
+  +'<section class="block"><h3>Påminnelse</h3>'
+  +'<div class="row2"><label><input type="checkbox" data-set="remindOn" '+(R.on?'checked':'')+'> Påminn mig varje dag</label>'
+  +'<label>Klockan <input type="time" data-set="remindTime" value="'+esc(R.time)+'"></label></div>'
+  +(perm==='default'?'<button class="btn" data-act="askperm">Tillåt notiser</button>':'')
+  +'<p class="hint">'+(perm==='granted'?'Notiser är tillåtna.':perm==='denied'?'Notiser är blockerade i webbläsaren. Ändra det i webbläsarens inställningar för sidan.':perm==='unsupported'?'Den här webbläsaren stöder inte notiser.':'Du behöver tillåta notiser först.')+' Påminnelsen visas bara om Läxskogen är öppen i en flik, och bara om det finns olösta uppgifter.</p></section>'
+  +'<section class="block"><h3>Egen belöning</h3><p class="hint">Något som du eller en vuxen bestämt att du får när du samlat tillräckligt många stjärnor.</p>'
+  +'<label class="fld"><span>Belöning</span><input type="text" data-set="rewardText" value="'+esc(W.text)+'" placeholder="Till exempel biokväll"></label>'
+  +'<label class="fld"><span>Antal stjärnor som behövs</span><input type="number" min="1" max="999" data-set="rewardStars" value="'+esc(W.stars)+'"></label></section>'
+  +'<section class="block"><h3>Rensa</h3><p class="hint">Läxorna sparas i den här webbläsaren på den här enheten.</p><button class="btn ghost" data-act="reset">Ta bort alla uppgifter och stjärnor</button></section>';
+}
+
+function editModal(){
+  const t=S.tasks.find(x=>x.id===UI.edit);if(!t)return '';
+  return '<div class="modal-wrap"><div class="scrim" data-act="edit-cancel"></div>'
+  +'<div class="modal" role="dialog" aria-modal="true" aria-labelledby="ed-h"><h3 id="ed-h">Ändra uppgiften</h3>'
+  +'<label class="fld"><span>Ämne</span><input type="text" id="ed-subj" value="'+esc(t.subject)+'" autocomplete="off"></label>'
+  +'<label class="fld"><span>Vad ska göras?</span><input type="text" id="ed-title" value="'+esc(t.title)+'" autocomplete="off"></label>'
+  +'<label class="fld"><span>Datum</span><input type="date" id="ed-date" value="'+esc(t.date)+'"></label>'
+  +'<label class="fld"><span>Antal dagar i rad, med den här dagen</span><input type="number" id="ed-days" min="1" max="60" value="1"></label>'
+  +'<p class="hint">Välj fler än 1 för att lägga in samma uppgift på de följande dagarna också.</p>'
+  +'<label class="chk"><input type="checkbox" id="ed-skip"> Hoppa över lördag och söndag</label>'
+  +'<div class="acts"><button class="btn" data-act="edit-save">Spara ändringen</button><button class="btn ghost" data-act="edit-cancel">Avbryt</button></div></div></div>';
+}
+function confirmModal(){
+  const t=S.tasks.find(x=>x.id===UI.confirm);if(!t)return '';
+  return '<div class="modal-wrap"><div class="scrim" data-act="confirm-no"></div>'
+  +'<div class="modal" role="dialog" aria-modal="true" aria-labelledby="cf-h"><div class="wave">'+waver(80)+'</div><h3 id="cf-h">Är du klar med uppgiften?</h3>'
+  +'<p class="ask"><b>'+esc(t.subject)+'</b> '+esc(t.title)+'</p>'
+  +'<div class="acts"><button class="btn" data-act="confirm-yes">Ja, jag är klar!</button><button class="btn ghost" data-act="confirm-no">Inte än</button></div></div></div>';
+}
+function closeConfirm(){
+  const id=UI.confirm;UI.confirm=null;render();
+  const n=id&&document.querySelector('input[data-id="'+id+'"]');if(n)n.focus({preventScroll:true});
+}
+function focusEdit(id){const b=document.querySelector('[data-act="edit"][data-id="'+id+'"]');if(b)b.focus({preventScroll:true})}
+function closeEdit(){const id=UI.edit;UI.edit=null;render();if(id)focusEdit(id)}
+function saveEdit(){
+  const t=S.tasks.find(x=>x.id===UI.edit);if(!t)return closeEdit();
+  const title=$('#ed-title').value.trim(),date=$('#ed-date').value;
+  if(!title){$('#ed-title').focus();return note('Skriv vad som ska göras.')}
+  if(!date){$('#ed-date').focus();return note('Välj ett datum.')}
+  t.title=title;t.subject=$('#ed-subj').value.trim()||(t.own?'Eget':'Övrigt');t.date=date;
+  const days=clampDays($('#ed-days').value);let extra=0;
+  if(days>1){
+    t.series=t.series||uid();
+    spread(date,days,$('#ed-skip').checked).slice(1).forEach(d=>{
+      if(S.tasks.some(x=>x.title===t.title&&x.subject===t.subject&&x.date===d))return;
+      const c={id:uid(),title:t.title,subject:t.subject,date:d,done:false,own:!!t.own,series:t.series};S.tasks.push(c);sync(c);extra++;
+    });
+  }
+  save();sync(t);
+  UI.edit=null;render();
+  note(extra?'Uppgiften är ändrad och upprepad på '+extra+(extra===1?' dag till':' dagar till'):'Uppgiften är ändrad');
+  focusEdit(t.id);
+}
+function render(){
+  const v=UI.view,V={today:viewToday,week:viewWeek,month:viewMonth,add:viewAdd,settings:viewSettings}[v]||viewToday;
+  $('#view').innerHTML=V()+editModal()+confirmModal();
+  document.querySelectorAll('.tab').forEach(b=>b.getAttribute('data-v')===v?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
+  const g=$('#gear');v==='settings'?g.setAttribute('aria-current','page'):g.removeAttribute('aria-current');
+  $('#stars').innerHTML='<b>★</b> '+stats().stars;
+}
+
+/* ---------- Hurra-djur ---------- */
+const CHEER=['Snyggt jobbat!','Där satt den!','En uppgift mindre!','Du är grym!','Bra kämpat!','Yes! Fortsätt så!','Wow, så duktig!'];
+let toastTimer;
+function celebrate(msg,kind){
+  const sparks=[...Array(12)].map((_,i)=>{const a=i/12*Math.PI*2,r=70+Math.random()*40;return '<i class="spark" style="--dx:'+(Math.cos(a)*r|0)+'px;--dy:'+(Math.sin(a)*r|0)+'px;--d:'+(Math.random()*.15).toFixed(2)+'s"></i>'}).join('');
+  $('#toast').innerHTML='<div class="pop">'+sparks+animal(kind,'cheer',84)+'<p>'+esc(msg)+'</p></div>';
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>{$('#toast').innerHTML=''},2800);
+}
+function note(msg){
+  $('#toast').innerHTML='<div class="pop note"><p>'+esc(msg)+'</p></div>';
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>{$('#toast').innerHTML=''},2600);
+}
+
+/* ---------- Delad lista (Firebase Firestore) ---------- */
+// Klistra in värdena från Firebase här. Lämnas de tomma sparas allt bara på den egna enheten.
+const FIREBASE_CONFIG={apiKey:'AIzaSyCQ3hqop2f4XE3IXNC8OJPIPhEiWtlOtBI',authDomain:'laxskogen.firebaseapp.com',projectId:'laxskogen',storageBucket:'laxskogen.firebasestorage.app',messagingSenderId:'910016278016',appId:'1:910016278016:web:24f4467578328debb6f2e5'};
+const FB='https://www.gstatic.com/firebasejs/10.14.1/';
+const cloud={on:false,code:store.get('laxskogen-code')||'',status:'',unsub:[],db:null,sdk:null,put(){},del(){},putSettings(){}};
+const cloudReady=()=>!!(FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.projectId);
+const plain=t=>JSON.parse(JSON.stringify(t));
+const sync=t=>{if(cloud.on)cloud.put(t)};
+const unsync=id=>{if(cloud.on)cloud.del(id)};
+const normCode=c=>String(c||'').trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+function newCode(){
+  const a='abcdefghjkmnpqrstuvwxyz23456789',r=new Uint8Array(20);crypto.getRandomValues(r);
+  return [...r].map(x=>a[x%a.length]).join('');
+}
+const inviteLink=()=>location.href.split('#')[0]+'#kod='+cloud.code;
+function softRender(){
+  if(UI.edit||UI.confirm||UI.view==='add')return;
+  const ae=document.activeElement;
+  if(UI.view==='settings'&&ae&&ae.matches&&ae.matches('input'))return;
+  render();
+}
+function cloudDisconnect(){
+  cloud.unsub.forEach(u=>{try{u()}catch(e){}});cloud.unsub=[];
+  cloud.on=false;cloud.status='';
+}
+async function cloudConnect(code){
+  if(!cloudReady())throw new Error('config');
+  const [appM,fsM]=await (window.__laxSdk?window.__laxSdk():Promise.all([import(FB+'firebase-app.js'),import(FB+'firebase-firestore.js')]));
+  cloudDisconnect();
+  if(!cloud.db){
+    const app=appM.getApps().length?appM.getApp():appM.initializeApp(FIREBASE_CONFIG);
+    try{cloud.db=fsM.initializeFirestore(app,{localCache:fsM.persistentLocalCache({tabManager:fsM.persistentMultipleTabManager()})})}
+    catch(e){cloud.db=fsM.getFirestore(app)}
+  }
+  const db=cloud.db;
+  cloud.sdk=fsM;cloud.code=code;cloud.on=true;cloud.status='';
+  store.set('laxskogen-code',code);
+  const fail=()=>{cloud.status='error';softRender()};
+  cloud.put=t=>fsM.setDoc(fsM.doc(db,'families',code,'tasks',t.id),plain(t)).catch(fail);
+  cloud.del=id=>fsM.deleteDoc(fsM.doc(db,'families',code,'tasks',id)).catch(fail);
+  cloud.putSettings=()=>fsM.setDoc(fsM.doc(db,'families',code,'meta','settings'),{name:S.name,reward:{text:S.reward.text||'',stars:+S.reward.stars||50}}).catch(fail);
+  cloud.unsub.push(fsM.onSnapshot(fsM.collection(db,'families',code,'tasks'),snap=>{
+    if(snap.metadata&&snap.metadata.fromCache&&snap.empty)return;
+    S.tasks=snap.docs.map(d=>d.data());cloud.status='ok';save();softRender();
+  },fail));
+  cloud.unsub.push(fsM.onSnapshot(fsM.doc(db,'families',code,'meta','settings'),snap=>{
+    if(!snap.exists())return;
+    const d=snap.data();
+    if(d.name)S.name=d.name;
+    if(d.reward)S.reward=Object.assign({},S.reward,d.reward);
+    save();if(UI.view!=='settings')softRender();
+  },fail));
+}
+async function joinCode(raw){
+  const code=normCode(raw);
+  if(code.length<12)throw new Error('kod');
+  const local=S.tasks.slice();
+  await cloudConnect(code);
+  if(local.length&&confirm('Det finns '+local.length+(local.length===1?' uppgift':' uppgifter')+' sparade på den här enheten. Vill du lägga till dem i den delade listan? Väljer du Avbryt försvinner de från den här enheten.'))local.forEach(t=>cloud.put(t));
+}
+let pushTimer;
+const pushSettings=()=>{clearTimeout(pushTimer);pushTimer=setTimeout(()=>{if(cloud.on)cloud.putSettings()},700)};
+async function initCloud(){
+  try{
+    const m=location.hash.match(/kod=([A-Za-z0-9]+)/);
+    if(m&&cloudReady()){
+      history.replaceState(null,'',location.pathname+location.search);
+      await joinCode(m[1]);render();note('Du är ansluten till den delade listan.');
+    }else if(cloud.code&&cloudReady()){await cloudConnect(cloud.code)}
+  }catch(e){note('Kunde inte ansluta till den delade listan.')}
+}
+function cloudBlock(){
+  if(!cloudReady())return '<section class="block"><h3>Delad lista</h3><p class="hint">Delning mellan telefoner är inte påslagen i den här versionen. Läxorna sparas bara på den här enheten.</p></section>';
+  if(cloud.on)return '<section class="block"><h3>Delad lista</h3><p class="hint">Du delar listan med alla som har länken. Det som läggs in, ändras eller kryssas syns hos alla. Skicka länken bara till dem som ska se läxorna.'+(cloud.status==='error'?' <b>Just nu går det inte att nå den delade listan.</b>':'')+'</p>'
+    +'<label class="fld"><span>Inbjudningslänk</span><input type="text" id="cloud-link" readonly value="'+esc(inviteLink())+'"></label>'
+    +'<div class="acts"><button class="btn" data-act="copylink">Kopiera länken</button><button class="btn ghost" data-act="cloud-off">Koppla från</button></div></section>';
+  return '<section class="block"><h3>Delad lista</h3><p class="hint">Dela listan så att alla ser samma läxor och samma ikryssade uppgifter.</p>'
+    +'<button class="btn" data-act="cloud-new">Skapa delad lista</button>'
+    +'<label class="fld" style="margin-top:16px"><span>Har du fått en kod?</span><input type="text" id="cloud-code" autocomplete="off" autocapitalize="off"></label>'
+    +'<button class="btn alt" data-act="cloud-join">Anslut</button></section>';
+}
+
+/* ---------- Händelser ---------- */
+function onToggle(el){
+  const t=S.tasks.find(x=>x.id===el.dataset.id);if(!t)return;
+  const before=stats().stars;
+  t.done=el.checked;t.doneAt=t.done?Date.now():null;save();sync(t);
+  const after=stats().stars;
+  if(t.done){
+    const fresh=ANIMALS.filter(a=>a.at>before&&a.at<=after);
+    const t0=today(),dayDone=t.date===t0&&S.tasks.filter(x=>x.date===t0).every(x=>x.done);
+    const kind=pick(unlocked(after));
+    if(fresh.length)celebrate(fresh[0].n+' är din nya vän!',fresh[0].k);
+    else if(dayDone)celebrate('Alla klara för idag! Nu är det fri tid.',kind);
+    else celebrate(pick(CHEER),kind);
+  }
+  render();
+  const n=document.querySelector('input[data-id="'+t.id+'"]');if(n)n.focus({preventScroll:true});
+}
+function go(v){UI.view=v;render();window.scrollTo(0,0)}
+
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act;
+  if(a==='tab')return go(el.dataset.v);
+  if(a==='edit'){UI.edit=el.dataset.id;render();const f=$('#ed-title');if(f){f.focus();f.select()}return}
+  if(a==='confirm-yes'){const id=UI.confirm;UI.confirm=null;return onToggle({dataset:{id},checked:true})}
+  if(a==='confirm-no')return closeConfirm();
+  if(a==='edit-cancel')return closeEdit();
+  if(a==='edit-save')return saveEdit();
+  if(a==='del'){
+    const t=S.tasks.find(x=>x.id===el.dataset.id);
+    if(t&&confirm('Ta bort "'+t.title+'"?')){S.tasks=S.tasks.filter(x=>x!==t);unsync(t.id);save();render()}
+    return;
+  }
+  if(a==='wk'){const n=+el.dataset.n;UI.weekStart=n===0?startOfWeek(new Date()):addDays(UI.weekStart,7*n);return render()}
+  if(a==='mo'){const n=+el.dataset.n;const m=UI.month;UI.month=n===0?new Date(new Date().getFullYear(),new Date().getMonth(),1):new Date(m.getFullYear(),m.getMonth()+n,1);if(n===0)UI.sel=today();return render()}
+  if(a==='pick'){UI.sel=el.dataset.d;return render()}
+  if(a==='parse'){UI.preview=parseText(UI.pasteText,fromYmd(UI.pasteDate||today()));return render()}
+  if(a==='prow-del'){UI.preview.splice(+el.dataset.i,1);return render()}
+  if(a==='prev-add'){
+    const rows=UI.preview.map(r=>Object.assign({},r,{skip:UI.skip})),res=addTasks(rows,false),n=res.added,skipped=res.skipped;
+    UI.preview=null;UI.pasteText='';
+    const dates=rows.map(r=>r.date).filter(Boolean).sort();
+    if(dates.length)UI.weekStart=startOfWeek(fromYmd(dates[0]));
+    go('week');
+    return note(n+(n===1?' uppgift inlagd':' uppgifter inlagda')+(skipped?' ('+skipped+' fanns redan)':''));
+  }
+  if(a==='own'){
+    const title=$('#own-title').value.trim();
+    if(!title){$('#own-title').focus();return note('Skriv vad som ska göras först.')}
+    const date=$('#own-date').value||today();
+    const days=clampDays($('#own-days').value);
+    const res=addTasks([{subject:$('#own-subj').value.trim(),title,date,days,skip:$('#own-skip').checked}],true);
+    UI.weekStart=startOfWeek(fromYmd(date));
+    go('week');return note(days>1?'Uppgiften är inlagd på '+res.added+(res.added===1?' dag':' dagar'):'Uppgiften är inlagd');
+  }
+  if(a==='cloud-new'){joinCode(newCode()).then(()=>{render();note('Delad lista skapad. Kopiera länken och skicka den.')}).catch(()=>note('Kunde inte skapa den delade listan.'));return}
+  if(a==='cloud-join'){joinCode($('#cloud-code').value).then(()=>{render();note('Du är ansluten.')}).catch(e=>note(e&&e.message==='kod'?'Koden ser inte rätt ut.':'Kunde inte ansluta.'));return}
+  if(a==='copylink'){
+    const l=inviteLink();
+    (navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(()=>note('Länken är kopierad.')).catch(()=>{const i=$('#cloud-link');if(i){i.focus();i.select()}note('Markera länken och kopiera den.')});
+    return;
+  }
+  if(a==='cloud-off'){if(confirm('Koppla från den delade listan? Den finns kvar för de andra, och du behåller en kopia här.')){cloudDisconnect();cloud.code='';store.set('laxskogen-code','');render();note('Frånkopplad.')}return}
+  if(a==='askperm'){if('Notification' in window)Notification.requestPermission().then(render);return}
+  if(a==='reset'){
+    if(confirm('Ta bort alla uppgifter och stjärnor? Det går inte att ångra.'+(cloud.on?' Uppgifterna tas bort för alla som delar listan.':''))){S.tasks.forEach(t=>unsync(t.id));S.tasks=[];save();render();note('Allt är rensat')}
+  }
+});
+
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.matches('input[type=checkbox][data-id]')){
+    if(!el.checked)return onToggle(el);
+    el.checked=false;UI.confirm=el.dataset.id;render();
+    const y=$('[data-act="confirm-yes"]');if(y)y.focus();
+    return;
+  }
+  if(el.dataset.set==='remindOn'){
+    S.remind.on=el.checked;save();
+    if(el.checked&&'Notification' in window&&Notification.permission==='default')Notification.requestPermission().then(render);
+    else render();
+  }
+});
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.dataset.pf!==undefined&&UI.preview){UI.preview[+el.dataset.pi][el.dataset.pf]=el.value;return}
+  if(el.dataset.ui){UI[el.dataset.ui]=el.type==='checkbox'?el.checked:el.value;return}
+  switch(el.dataset.set){
+    case 'name':S.name=el.value||'Isabelle';break;
+    case 'remindTime':S.remind.time=el.value||'16:00';S.remind.last='';break;
+    case 'rewardText':S.reward.text=el.value;break;
+    case 'rewardStars':S.reward.stars=Math.max(1,+el.value||1);break;
+    default:return;
+  }
+  save();
+  if(['name','rewardText','rewardStars'].includes(el.dataset.set))pushSettings();
+});
+
+document.addEventListener('keydown',e=>{
+  if(!UI.edit&&!UI.confirm)return;
+  if(e.key==='Escape'){e.preventDefault();return UI.confirm?closeConfirm():closeEdit()}
+  if(UI.edit&&e.key==='Enter'&&e.target.matches('.modal input')){e.preventDefault();return saveEdit()}
+  if(e.key==='Tab'){
+    const f=[...document.querySelectorAll('.modal input,.modal button')];if(!f.length)return;
+    const first=f[0],last=f[f.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+  }
+});
+
+/* ---------- Påminnelse ---------- */
+function checkRemind(){
+  const r=S.remind;
+  if(!r.on||!('Notification' in window)||Notification.permission!=='granted')return;
+  const now=new Date(),hm=pad(now.getHours())+':'+pad(now.getMinutes()),t0=today();
+  if(r.last===t0||hm<r.time)return;
+  const left=S.tasks.filter(t=>!t.done&&t.date<=t0).length;
+  r.last=t0;save();
+  if(left)new Notification('Läxskogen',{body:S.name+', du har '+left+(left===1?' uppgift':' uppgifter')+' kvar att göra.'});
+}
+setInterval(checkRemind,30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){checkRemind();if(UI.view==='today'&&!UI.edit&&!UI.confirm)render()}});
+
+render();
+checkRemind();
+initCloud();
+})();
+</script>
+</body>
+</html>
